@@ -1,6 +1,7 @@
 import axios from "axios";
 const axiosInstance=axios.create({
-baseURL:'http://localhost:3000'
+// baseURL:'http://localhost:3000'
+baseURL: 'https://moviemate-server.vercel.app/'
 })
 axiosInstance.interceptors.request.use((config)=>{
 const accessToken=sessionStorage.getItem('token')
