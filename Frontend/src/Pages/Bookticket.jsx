@@ -158,7 +158,7 @@
 // }
 import { useState, useEffect } from "react";
 import { Box, Typography, Button } from "@mui/material";
-import SeatSelection from "./SeatSelection";
+import SeatSelection from "./Seatselection";
 import axiosInstance from "./axiosinterceptor";
 import RenderRazorpay from "./Payment";
 import { useNavigate, useParams } from "react-router-dom";
