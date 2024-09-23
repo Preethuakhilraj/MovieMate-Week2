@@ -39,44 +39,39 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation(); // Use location hook to track current path
+  const location = useLocation();
 
+  // useEffect runs only when the component mounts
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedIsAuthenticated = localStorage.getItem("isAuthenticated");
+    const storedUser = sessionStorage.getItem("user");
+    const storedIsAuthenticated = sessionStorage.getItem("isAuthenticated");
 
-    console.log("Stored User:", storedUser);
-    console.log("Stored Is Authenticated:", storedIsAuthenticated);
-
-    if (storedIsAuthenticated === "true") {
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log("Parsed User:", parsedUser);
-          setUser(parsedUser);
-        } catch (error) {
-          console.error("Error parsing user data:", error);
-          setUser(null);
-        }
-      } else {
+    if (storedIsAuthenticated === "true" && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
         setUser(null);
+        setIsAuthenticated(false);
       }
-      setIsAuthenticated(true);
     } else {
-      setIsAuthenticated(false);
       setUser(null);
+      setIsAuthenticated(false);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]); // Empty dependency array ensures this runs only once, when the component mounts
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("isAuthenticated");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("isAuthenticated");
     setIsAuthenticated(false);
     setUser(null);
     navigate("/"); // Redirect to home after logout
   };
 
   const isActive = (path) => location.pathname === path;
+  const isAdmin = user?.email === "admin@example.com";
 
   return (
     <ThemeProvider theme={theme}>
@@ -124,31 +119,59 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Box display="flex" alignItems="center" sx={{ marginRight: 2 }}>
+              {!isAdmin && (
+                <Box display="flex" alignItems="center" sx={{ marginRight: 2 }}>
+                  <Button
+                    color="secondary"
+                    component={Link}
+                    to="/userdashboard"
+                    sx={{
+                      fontWeight: isActive("/userdashboard") ? "bold" : "normal",
+                      borderBottom: isActive("/userdashboard") ? "2px solid gold" : "none",
+                      marginRight: 2,
+                    }}
+                  >
+                    User Dashboard
+                  </Button>
+                  <Button
+                    color="secondary"
+                    component={Link}
+                    to="/booked-tickets"
+                    sx={{
+                      fontWeight: isActive("/booked-tickets") ? "bold" : "normal",
+                      borderBottom: isActive("/booked-tickets") ? "2px solid gold" : "none",
+                    }}
+                  >
+                    Booked Tickets
+                  </Button>
+                </Box>
+              )}
+
+              <Box display="flex" alignItems="center" sx={{ marginLeft: 'auto' }}>
                 <Avatar sx={{ bgcolor: "primary.main", marginRight: 1 }}>
                   <AccountCircleIcon />
                 </Avatar>
                 <Typography variant="h6" color="textPrimary">
-                  Welcome, {user?.name || "Guest"}
+                  {isAdmin ? "Welcome Admin" : `Welcome, ${user?.email || "Guest"}`}
                 </Typography>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleLogout}
+                  sx={{
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    padding: "6px 16px",
+                    marginLeft: 2,
+                    backgroundColor: "gold",
+                    "&:hover": {
+                      backgroundColor: "yellow",
+                    },
+                  }}
+                >
+                  Logout
+                </Button>
               </Box>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleLogout}
-                sx={{
-                  fontWeight: "bold",
-                  textTransform: "none",
-                  padding: "6px 16px",
-                  marginLeft: 2,
-                  backgroundColor: "gold",
-                  "&:hover": {
-                    backgroundColor: "yellow",
-                  },
-                }}
-              >
-                Logout
-              </Button>
             </>
           )}
         </Toolbar>

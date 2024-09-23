@@ -3,7 +3,7 @@ const axiosInstance=axios.create({
 baseURL:'http://localhost:3000'
 })
 axiosInstance.interceptors.request.use((config)=>{
-const accessToken=localStorage.getItem('token')
+const accessToken=sessionStorage.getItem('token')
 if(accessToken){
     if(config){
         config.headers.token=accessToken

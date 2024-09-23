@@ -1,7 +1,7 @@
 import { Box, Button, TextField, Typography, Checkbox, FormControlLabel } from '@mui/material';
-import axios from 'axios';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axiosInstance from './axiosinterceptor';
 
 const Image = 'https://wallpapercave.com/wp/wp11142886.jpg';
 
@@ -23,7 +23,7 @@ const navigate=useNavigate();
     e.preventDefault();
     console.log('Data sent:', user);
     try {
-      const response = await axios.post('http://localhost:3000/signup', user);
+      const response = await axiosInstance.post('/signup', user);
       console.log(response.data);
       alert('New User registered');
       navigate('/login')

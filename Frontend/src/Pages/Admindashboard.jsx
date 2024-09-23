@@ -1,66 +1,96 @@
+// AdminDashboard.jsx
 import { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Button, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from './axiosinterceptor';
 
 const AdminDashboard = () => {
- 
   const [movies, setMovies] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/user/movies');
-        console.log('API Response:', response.data);
-        setMovies(response.data || []);  // Ensure movies is an array
-      } catch (error) {
-        console.error('Error fetching movies:', error);
-      }
-    };
-
-    fetchData();
+    fetchMovies();
   }, []);
- 
+
+  const fetchMovies = async () => {
+    try {
+      const response = await axiosInstance.get('/user/movies');
+      setMovies(response.data || []);
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+    }
+  };
+
+  const deleteMovie = async (id) => {
+    const confirmed = window.confirm('Are you sure you want to delete this movie?');
+    if (confirmed) {
+      try {
+        await axiosInstance.delete(`/admin/movies/${id}`);
+        alert('Movie deleted successfully');
+        fetchMovies();
+      } catch (error) {
+        console.error('Error deleting movie:', error);
+      }   }
+  };
+  
 
   return (
-    <div style={{ marginTop: '50px' }}>
-      <h1>Admin Dashboard</h1>
-      <Table>
+    <div style={{ marginTop: '120px', backgroundColor: '#000', color: '#fff', padding: '20px' }}>
+      <h1 style={{ textAlign: 'center'}}>
+            
+      </h1>
+      <Button   variant="outlined"
+                      sx={{
+                        borderColor: '#FFC107',
+                        color: '#FFC107',position: 'absolute', right: '40px',top: '130px',
+                        ':hover': { borderColor: 'black',backgroundColor: '#FFC107' ,color: '#000' },
+                      }}
+                    //  style={{ backgroundColor: '#ffcc00', color: '#000', top: '150px',position: 'absolute',right: '40px' }}
+       onClick={() => navigate('/add-movie')} >
+        Add Movie
+      </Button>
+        {/* // variant="contained"
+        // style={{ backgroundColor: '#ffcc00', color: '#000', position: 'absolute', right: '20px', top: '10px' }}
+        // onClick={() => navigate('/add-movie')} */}
+           <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Image</TableCell>
-            <TableCell>Movie Name</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Languages</TableCell>
-            <TableCell>Average Rating</TableCell>
-            <TableCell>Tickets Sold/Day</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell style={{ color: '#ffcc00'}}>Image</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Movie Name</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Category</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Languages</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Average Rating</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Tickets Sold/Day</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Show Time</TableCell>
+            <TableCell style={{ color: '#ffcc00' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {movies.map(movie => (
+          {movies.map((movie) => (
             <TableRow key={movie._id}>
-              <TableCell><img src={movie.image} alt={movie.name} style={{ width: '100px' }} /></TableCell>
-              <TableCell>{movie.name}</TableCell>
-              <TableCell>{movie.category}</TableCell>
-              <TableCell>{movie.languages.join(', ')}</TableCell>
-              <TableCell>{movie.averageRating.toFixed(1)}</TableCell>
-              <TableCell>{movie.ticketsSoldPerDay}</TableCell>
               <TableCell>
-                <IconButton onClick={() => {/* Handle Edit */}}><EditIcon /></IconButton>
-                <IconButton onClick={() => deleteMovie(movie._id)}><DeleteIcon /></IconButton>
+                <img src={movie.image} alt={movie.name} style={{ width: '100px' }} />
+              </TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.name}</TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.category}</TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.languages.join(', ')}</TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.averageRating ? movie.averageRating.toFixed(1) : '4.5'}</TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.ticketsSoldPerDay || '80'}</TableCell>
+              <TableCell style={{ color: '#fff' }}>{movie.showTime|| 'N/A'}</TableCell>
+              <TableCell>
+                <IconButton onClick={() => navigate(`/edit-movie/${movie._id}`)} style={{ color: '#ffcc00' }}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => deleteMovie(movie._id)} style={{ color: '#ffcc00' }}>
+                  <DeleteIcon />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <Button variant="contained" color="primary" onClick={() => {/* Handle Add Movie */}}>
-        Add Movie
-      </Button>
-      <Button variant="contained" color="secondary" onClick={() => {/* Handle Logout */}}>
-        Logout
-      </Button>
     </div>
   );
 };

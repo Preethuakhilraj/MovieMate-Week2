@@ -1,63 +1,26 @@
-const express = require("express");
+const express = require('express');
+const Razorpay = require('razorpay');
 const router = express.Router();
-const Razorpay = require("razorpay");
-const bodyParser = require("body-parser");
-const bcrypt = require("bcrypt");
-const app = express();
-app.use(bodyParser.json());
 
-const crypto = require("crypto");
-const secret_key = "1234567890";
-
-router.post("/order", async (req, res) => {
-  const razorpay = new Razorpay({
-    key_id: req.body.keyId,
-    key_secret: req.body.keySecret,
-  });
-  const options = {
-    amount: req.body.amount,
-    currency: req.body.currency,
-    receipt: "any unique id for every order",
-    payment_capture: 1,
-  };
-  console.log(req.body.keyId);
-  console.log(req.body.keySecret);
-  try {
-    const response = await razorpay.orders.create(options);
-    res.json({
-      order_id: response.id,
-      currency: response.currency,
-      amount: response.amount,
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(400).send("Not able to create order. Please try again!");
-  }
+const razorpayInstance = new Razorpay({
+  key_id: 'rzp_test_MWAJneIEOdvo1h',
+  key_secret: 'fYI3blnDVnJFWMqWBBZwRvrP'
 });
 
-router.post("/paymentCapture", (req, res) => {
-  const data = crypto.createHmac("sha256", secret_key);
-  data.update(JSON.stringify(req.body));
-  const digest = data.digest("hex");
-  if (digest === req.headers["x-razorpay-signature"]) {
-    res.json({
-      status: "ok",
-    });
-  } else {
-    res.status(400).send("Invalid signature");
-  }
-});
-
-router.post("/refund", async (req, res) => {
+router.post('/order', async (req, res) => {
+  const { amount, currency } = req.body;
   try {
     const options = {
-      payment_id: req.body.paymentId,
-      amount: req.body.amount,
+      amount: amount,
+      currency: currency,
+      receipt: `receipt_order_${Date.now()}`
     };
-    const razorpayResponse = await razorpay.refund(options);
-    res.send("Successfully refunded");
+
+    const order = await razorpayInstance.orders.create(options);
+    res.json(order);
   } catch (error) {
-    res.status(400).send("unable to issue a refund");
+    console.error('Error creating Razorpay order:', error);
+    res.status(500).json({ message: 'Failed to create payment order' });
   }
 });
 

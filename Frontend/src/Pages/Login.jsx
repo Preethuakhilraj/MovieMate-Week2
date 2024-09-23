@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material'; 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from './axiosinterceptor';
@@ -6,8 +6,8 @@ import axiosInstance from './axiosinterceptor';
 const Image = 'https://images.pexels.com/photos/11961850/pexels-photo-11961850.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
 
 export default function Login() {
-  const [user, setUser] = useState({
-    name: '',
+  const [userCredentials, setUserCredentials] = useState({
+    email: '',
     password: '',
   });
 
@@ -15,40 +15,76 @@ export default function Login() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+    setUserCredentials({ ...userCredentials, [name]: value });
+  };
+
+  // Function to decode the token and store in sessionStorage
+  const handleToken = (token) => {
+    if (!token) throw new Error('Token is missing from the response.');
+
+    // Manual decoding of the JWT token
+    const base64Url = token.split('.')[1]; // Get payload part of the token
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Replace URL-safe characters
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
+    
+    const decodedToken = JSON.parse(jsonPayload);
+    console.log("Decoded token:", decodedToken);
+
+    // Save token and decoded user information in sessionStorage
+    sessionStorage.setItem('token', token);
+    sessionStorage.setItem('user', JSON.stringify(decodedToken));
+    sessionStorage.setItem('isAuthenticated', 'true');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Check if the user is an admin
-    if (user.name === 'Admin' && user.password === '12345') {
-      navigate('/admindashboard');
-      return;
-    }
-
+  
+    const { email, password } = userCredentials;
+  
     try {
-      const response = await axiosInstance.post('/login', user);
-      console.log(response.data);
-      alert('Login Successful!');
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem("isAuthenticated", "true"); // Set as a string
-        
+      let response;
+
+      // Check if the user is admin
+      if (email === 'admin@example.com' && password === '12345') {
+        response = await axiosInstance.post('/login/adminlogin', userCredentials);
+        alert('Admin Login Successful!');
+
+        // Decode token and store for admin
+        const { token } = response.data;
+        handleToken(token);
+
+        navigate('/admindashboard');
+      } else {
+        response = await axiosInstance.post('/login', userCredentials);
+        console.log('Login response:', response.data);
+
+        // Decode token and store for user
+        const { token } = response.data;
+        handleToken(token);
+
+        alert('Login Successful!');
         navigate('/userdashboard');
       }
     } catch (error) {
       console.error('Error during login:', error);
+      alert('An unexpected error occurred during login.');
+
       if (error.response) {
-        alert(error.response.data.message || 'Login failed!');
-      } else {
-        alert('An unexpected error occurred!');
+        if (error.response.status === 401) {
+          alert('Invalid credentials. Please try again.');
+        } else {
+          alert(error.response.data.message || 'An unexpected error occurred during login.');
+        }
       }
     }
   };
-
 
   return (
     <Box
@@ -66,7 +102,7 @@ export default function Login() {
       <Box
         sx={{
           display: 'flex',
-          width: '70%',
+          width: { xs: '90%', sm: '70%' }, // Responsive width
           height: '70%',
           boxShadow: 3,
           borderRadius: 2,
@@ -107,15 +143,16 @@ export default function Login() {
         >
           <Box sx={{ width: '80%' }}>
             <Typography variant="h4" gutterBottom>
-              Welcome Back to Login!<hr />
+              Welcome Back to Login!
+              <hr />
             </Typography>
             <form onSubmit={handleSubmit}>
               <TextField
                 required
-                id="name"
-                name="name"
-                label="Username"
-                value={user.name}
+                id="email"
+                name="email"
+                label="Email"
+                value={userCredentials.email}
                 onChange={handleChange}
                 variant="filled"
                 fullWidth
@@ -127,7 +164,7 @@ export default function Login() {
                 name="password"
                 label="Password"
                 type="password"
-                value={user.password}
+                value={userCredentials.password}
                 onChange={handleChange}
                 variant="filled"
                 fullWidth
@@ -141,14 +178,6 @@ export default function Login() {
                 sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem' }}
               >
                 Login
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                fullWidth
-                sx={{ py: 1.5, fontSize: '1rem' }}
-              >
-                Sign in with Google
               </Button>
               <Typography
                 sx={{ mt: 2 }}

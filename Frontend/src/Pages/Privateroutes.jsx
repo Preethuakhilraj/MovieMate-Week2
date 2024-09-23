@@ -2,7 +2,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
 export default function privateroutes() {
-    const token=localStorage.getItem('token');
+    const token=sessionStorage.getItem('token');
     let verifyUser=false;
     if(token){
         verifyUser=true;
