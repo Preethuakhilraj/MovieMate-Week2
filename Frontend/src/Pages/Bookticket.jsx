@@ -161,6 +161,7 @@ import SeatSelection from "./SeatSelection";
 import axiosInstance from "./axiosinterceptor";
 import RenderRazorpay from "./Payment";
 import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function BookTicket() {
   const { id } = useParams(); // Ensure the parameter name matches exactly with your route definition.
@@ -236,7 +237,7 @@ export default function BookTicket() {
       });
       alert(`Tickets booked successfully! Confirmation sent to ${user.email}`);
       const seatNumbers = response.data.seats;
-      window.location.reload();
+      // window.location.reload();
       setSelectedSeats([]);
       navigate("/success", { state: { seatNumbers } });
     } catch (error) {
