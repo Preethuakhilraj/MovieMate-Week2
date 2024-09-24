@@ -131,14 +131,14 @@ router.post("/bookticket/:id", async (req, res) => {
     const newBookings = seats.map((seat, index) => ({
       movieId: id,
       userEmail: email,
-      seatNumber: bookedSeats + index + 1
+      seatNumbers: bookedSeats + index + 1
     }));
 
     await Booking.insertMany(newBookings);
 
-    await sendEmailConfirmation(email, movie.name, newBookings.map(b => b.seatNumber).join(', '));
+    await sendEmailConfirmation(email, movie.name, newBookings.map(b => b.seatNumbers).join(', '));
 
-    res.status(201).send({ message: 'Booking confirmed!', seats: newBookings.map(b => b.seatNumber) });
+    res.status(201).send({ message: 'Booking confirmed!', seats: newBookings.map(b => b.seatNumbers) });
   } catch (error) {
     console.error('Booking error:', error);
     res.status(500).send({ error: 'Internal server error' });
