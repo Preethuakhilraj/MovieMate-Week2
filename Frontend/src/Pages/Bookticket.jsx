@@ -155,10 +155,9 @@
 //       </Box>
 //     </Box>
 //   );
-// }
-import { useState, useEffect } from "react";
+// }import { useState, useEffect } from "react";
 import { Box, Typography, Button } from "@mui/material";
-import SeatSelection from "./Seatselection";
+import SeatSelection from "./SeatSelection";
 import axiosInstance from "./axiosinterceptor";
 import RenderRazorpay from "./Payment";
 import { useNavigate, useParams } from "react-router-dom";
@@ -176,16 +175,16 @@ export default function BookTicket() {
   useEffect(() => {
     console.log("Id from useParams:", id);
   }, [id]);
-    useEffect(() => {
-      if (selectedSeats.length === 0) {
-        setTicketStatus("Available");
-      } else if (selectedSeats.length > 0 && selectedSeats.length < 25) {
-        setTicketStatus("Fast Filling");
-      } else {
-        setTicketStatus("Housefull");
-      }
-    }, [selectedSeats]);
-    
+
+  useEffect(() => {
+    if (selectedSeats.length === 0) {
+      setTicketStatus("Available");
+    } else if (selectedSeats.length < 10) {
+      setTicketStatus("Fast Filling");
+    } else {
+      setTicketStatus("Housefull");
+    }
+  }, [selectedSeats]);
 
   useEffect(() => {
     console.log(displayRazorpay);
@@ -223,11 +222,9 @@ export default function BookTicket() {
     }
   };
 
-
-
   const handlePaymentSuccess = async () => {
     setDisplayRazorpay(false);
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
       alert("User not found. Please log in again.");
       return;
@@ -239,7 +236,8 @@ export default function BookTicket() {
       });
       alert(`Tickets booked successfully! Confirmation sent to ${user.email}`);
       const seatNumbers = response.data.seats;
-            setSelectedSeats([]);
+      window.location.reload();
+      setSelectedSeats([]);
       navigate("/success", { state: { seatNumbers } });
     } catch (error) {
       console.error("Error booking tickets:", error);
@@ -264,29 +262,9 @@ export default function BookTicket() {
       bgcolor="#1e1e1e"
       color="white"
     >
-     <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      bgcolor="#f4f4f4"
-      borderRadius="10px"
-      p={2}
-      mt={2}
-      boxShadow="0 3px 6px rgba(0,0,0,0.1)"
-    >
-      <Typography variant="h6" color="black" mr={2}>
-        Ticket Availability:
-      </Typography>
-      <Box display="flex" alignItems="center" justifyContent="center">
-              <Typography
-          variant="h6"
-          color='#ffeb3b'
-          sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}
-        >
-          {ticketStatus}
-        </Typography>
-      </Box>
-    </Box>
+      <Typography variant="h6">Ticket Availability</Typography>
+      <Typography>{ticketStatus}</Typography>
+
       <Box display="flex" gap={4}>
         <Box flex={2} bgcolor="#1e1e1e" color="white" p={4} borderRadius={2}>
           <SeatSelection
@@ -314,21 +292,10 @@ export default function BookTicket() {
           </Box>
 
           <Button
-  variant="outlined"
-  fullWidth
-  onClick={() => handleCreateOrder(totalAmount * 100, "INR")}
-  sx={{
-    mt: 2,
-   // margin-left shorthand
-    color: '#ffeb3b',
-    borderColor: '#ffeb3b',
-    fontWeight: 'bold',
-    '&:hover': {
-      backgroundColor: '#ffeb3b',
-      color: '#000',
-    },
-  }}
-  
+            variant="contained"
+            color="primary"
+            sx={{ mt: 4 }}
+            onClick={() => handleCreateOrder(totalAmount * 100, "INR")}
           >
             Proceed to Payment
           </Button>
